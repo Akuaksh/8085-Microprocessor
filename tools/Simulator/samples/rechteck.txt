@@ -1,0 +1,24 @@
+;*************************************
+;rechteck.txt 8085-Simulator[SoftWehr]
+;*************************************
+;Dieses Programm verhält sich wie ein
+;Rechteckgenerator. Die Werte für die
+;Frequenz werden von der Eingabebaugruppe
+;eingelesen. Umso höher der Wert an der
+;Eingabebaugruppe, umso höher die Frequenz.
+
+st0: mvi h,00   ;Ausgabe 0
+sta: mov a,h
+     out 02
+     in 01      ;Wert einlesen
+     cpi 00     ;Wert=0?
+     jz st0     ;wenn ja,-->st0
+cou: inr a      ;Wert inkrementieren
+     jnz cou    ;wenn Wert ungleich 0,-->cou
+     mov a,h
+     cpi 01
+     jz an      ;wenn Ausgabe = 1, dann Ausgabe = 0
+     mvi h,01   ;ansonsten Ausgabe = 1
+     jmp sta    ;neuer Durchlauf...
+an:  mvi h,00
+     jmp sta    ;neuer Durchlauf...

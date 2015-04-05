@@ -1,0 +1,50 @@
+;***********************************
+;licht.txt 8085-Simulator [SoftWehr]
+;***********************************
+;Dieses Programm stellt ein kleines Lauflicht dar.
+;Es lässt sich mit Bit D7 an der Eingabebaugruppe
+;AN und AUS schalten. Mit Bit D6 wird die Rotations-
+;richtung festgelegt (rechts oder links) und mit Bit
+;D0 kann man zwischen 2 Laufgeschwindigkeiten wählen.
+;Pause sollte auf 0 und Bit D7 auf 1 gesetzt werden.
+
+;Hauptprgramm
+     mvi b,01   ;Anfangswert fuer Rotation
+mei: in 01      ;Ein? (Bit D7=1?)
+     ani 80     ;Bitmaske fuer D7
+     jz mei     ;-->MEI, wenn nicht "EIN"
+     mov a,b    ;Lauflicht ansteuern
+     out 02
+     in 01      ;Linksrotation? (Bit D6=1?)
+     ani 40     ;Bitmaske fuer D6
+     jz rr      ;-->RR, wenn keine Linksrotation
+     mov a,b
+     rlc        ;nächste Linksrotation
+     mov b,a
+mv:  in 01      ;schnelle Rotation? (Bit D0=1?)
+     ani 01     ;Bitmaske fuer Bit D0
+     jz ze2     ;-->ZE2, wenn langsam
+     call ze1   ;sonst Unterprogramm ZE1 aufrufen
+     jmp mei
+
+;Rechtsrotation
+rr:  mov a,b
+     rrc        ;nächste Rechtsrotation
+     mov b,a
+     jmp mv
+
+;Zeitschleife 1
+ze1: lxi d,0001 ;Z laden
+mz1: dcx d      ;Z:=Z-1
+     mov a,d    ;Z=0?
+     ora e
+     jnz mz1    ;-->MZ1, wenn nicht 0
+     ret        ;Rücksprung...
+
+;Zeitschleife 2
+ze2: lxi d,0006 ;Z laden
+mz2: dcx d      ;Z:=Z-1
+     mov a,d    ;Z=0?
+     ora e
+     jnz mz2    ;-->MZ2, wenn nicht 0
+     jmp mei

@@ -1,0 +1,10 @@
+;*********************************
+;rlc.txt 8085-Simulator [SoftWehr]
+;*********************************
+;Dies ist die einfachste Form eines
+;Lauflichts.
+
+     mvi a,01
+sta: out 02
+     rlc
+     jmp sta

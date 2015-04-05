@@ -1,0 +1,12 @@
+
+Microsoft (R) Inbox Repair Tool
+Copyright (C) Microsoft Corp 1995. All rights reserved.
+
+**Beginning NDB recovery
+
+  **Attempting to open database
+
+  **Attempting to validate header
+
+    File size (12311 bytes) is smaller than the minimum NDB size (17408 bytes)
+

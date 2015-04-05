@@ -1,0 +1,16 @@
+;**********************************
+;zeit.txt 8085-Simulator [SoftWehr]
+;**********************************
+;Ein kleines Beispiel für eine
+;verschachtelte 8-Bit-Zeitschleife
+
+     mvi a,ff   ;ff ausgeben (start)
+     out 02
+     mvi b,02   ;y laden
+mcy: mvi c,00   ;x laden
+my:  dcr c      ;x dekrementieren
+     jnz my     ;wenn x ungleich 0,-->my
+     dcr b      ;y dekrementieren
+     jnz mcy    ;wenn y ungleich 0,-->mcy
+     mvi a,00   ;00 ausgeben (stopp)
+     out 02

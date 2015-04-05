@@ -1,0 +1,11 @@
+;**********************************
+;00ff.txt 8085-Simulator [SoftWehr]
+;**********************************
+;Ein kleines Programm das auf der
+;Ausgabebaugruppe die Binärziffern
+;von 00H-FFH ausgibt.
+
+     mvi a,00
+sta: inr a
+     out 02
+     jmp sta

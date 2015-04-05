@@ -1,0 +1,125 @@
+;***********************************
+;count.txt 8085-Simulator [SoftWehr]
+;***********************************
+;Dies ist ein Zählprogramm. Es zählt von
+;000D bis 999D. Das Programm gliedert sich
+;in 2 Teile - Zählen und Anzeigen. Für die
+;Decodierung der Zahlen zur Ansteuerung an die
+;7-Segment-Anzeige wird ein Software-Decoder
+;verwendet. Die 3 Anzeigen werden nacheinander
+;angesteuert und mit den entsprechenden Werten
+;geladen.
+;Zum Betrieb muss die 7-Segment-Anzeige
+;angeschlossen und Pause auf 0 gestellt werden.
+
+;Hauptprogramm
+sta: call anz   ;Sprung zum Anzeige-Unterprogramm
+     inr d      ;Zählregister inkrementieren
+     mov a,d
+     cpi 64     ;Zählregister = 100?
+     jz hdt     ;wenn ja,-->hdt
+st2: jmp sta
+
+;Anzeige
+anz: mvi a,01   ;1. Anzeige ansteuern
+     out 03
+     mov a,d
+     daa        ;Dezimalkorrektur
+     ani 0f     ;niederwertigen Teil selektieren
+     call dec   ;Akku decodieren (für 7-Segment)
+     out 02     ;niederwertigen Teil ausgeben
+     call ze2   ;kleine Zeitschleife aufrufen
+     call dun   ;Unterprogramm für Dunkeltastung
+     mvi a,02   ;2. Anzeige ansteuern
+     out 03
+     mov a,d
+     daa        ;Dezimalkorrektur
+     ani f0     ;höherwertigen Teil selektieren
+     rlc
+     rlc        ;4*rotieren, um den Wert in den
+     rlc        ;niederwertigen Teil zu schieben
+     rlc
+     call dec   ;Akku decodieren (für 7-Segment)
+     out 02
+     call ze2   ;kleine Zeitschleife aufrufen
+     call dun   ;Unterprogramm für Dunkeltastung
+     mvi a,04   ;3. Anzeige ansteuern
+     out 03
+     mov a,e
+     call dec   ;Akku decodieren (für 7-Segment)
+     out 02
+     call ze2   ;kleine Zeitschleife aufrufen
+     call dun   ;Unterprogramm für Dunkeltastung
+     ret        ;Rücksprung...
+
+;Dunkeltastung
+dun: mvi a,00   ;"Nichts" ausgeben
+     out 02
+     mvi a,07   ;alle Anzeigen selektieren
+     out 03
+     ret        ;Rücksprung...
+
+;Decoder
+;Es werden die Zahlen 0 bis 9 abgefragt. Dann
+;wird zum passenden Programmteil verzweigt,
+;um den entsprechenden Wert zu laden.
+dec: cpi 00
+     jz de0
+     cpi 01
+     jz de1
+     cpi 02
+     jz de2
+     cpi 03
+     jz de3
+     cpi 04
+     jz de4
+     cpi 05
+     jz de5
+     cpi 06
+     jz de6
+     cpi 07
+     jz de7
+     cpi 08
+     jz de8
+     cpi 09
+     jz de9
+de0: mvi a,3F
+     ret
+de1: mvi a,06
+     ret
+de2: mvi a,5B
+     ret
+de3: mvi a,4F
+     ret
+de4: mvi a,66
+     ret
+de5: mvi a,6D
+     ret
+de6: mvi a,7D
+     ret
+de7: mvi a,07
+     ret
+de8: mvi a,7F
+     ret
+de9: mvi a,6F
+     ret
+     
+;kleine Zeitschleife
+ze2: lxi h,0002 ;Zählwert laden
+tmp: dcx h      ;Zählwert dekrementieren
+     mov a,h
+     ora l      ;Zählwert = 0?
+     jnz tmp    ;wenn nein,-->tmp
+     ret        ;Rücksprung...
+
+;Unterprogramm für Hunderter
+hdt: inr e      ;Inkrementiere Hunderter
+     mvi d,00   ;Zehner und Einer = 0
+     mov a,e
+     cpi 0a     ;Hunderter = 10?
+     jz tsd     ;wenn ja,-->tsd
+     jmp st2    ;Sprung ins Hauptprogramm
+
+;Unterprogramm für Tausender
+tsd: mvi e,00   ;Hunderter = 0
+     jmp st2    ;Sprung ins Hauptprogramm

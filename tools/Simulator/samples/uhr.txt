@@ -1,0 +1,165 @@
+;*********************************
+;uhr.txt 8085-Simulator [SoftWehr]
+;*********************************
+;Dies ist eine Digitaluhr. Sie läuft von
+;00.00.00 bis 23.59.59. Das Programm gliedert
+;sich in 2 Teile - Zählen und Anzeigen. Für die
+;Decodierung der Zahlen zur Ansteuerung an die
+;7-Segment-Anzeige wird die Adressmanipulation
+;verwendet. Die 6 Anzeigen werden nacheinander
+;angesteuert und mit den entsprechenden Werten
+;geladen.
+;Zum Betrieb muss die 7-Segment-Anzeige
+;angeschlossen und Pause auf 0 gestellt werden.
+;Auf einem "originalen" 8085 müsste die
+;Zeitschleife natürlich entsprechend erhöht
+;werden. In diesem Programm werden die
+;7-Segment-Anzeigen in einer Sekunde nur 1 mal
+;angesteuert.
+
+     mvi a,3f   ;Liste fuer Adressemanipulation laden
+     sta 0000
+     mvi a,06
+     sta 0001
+     mvi a,5b
+     sta 0002
+     mvi a,4f
+     sta 0003
+     mvi a,66
+     sta 0004
+     mvi a,6d
+     sta 0005
+     mvi a,7d
+     sta 0006
+     mvi a,07
+     sta 0007
+     mvi a,7f
+     sta 0008
+     mvi a,6f
+     sta 0009
+
+;Hauptprogramm
+m0:  mvi a,00
+     sta 0012   ;Sekunden=0
+sek: call zei
+zew: lda 0012   ;Sekunden+1
+     adi 01
+     daa
+     sta 0012
+     cpi 60     ;Sekunden=60?
+     jnz sek    ;wenn nein,-->sek
+     lda 0011   ;Minuten+1
+     adi 01
+     daa
+     sta 0011
+     cpi 60     ;Minuten=60?
+     jnz m0     ;wenn nein,-->m0
+     mvi a,00   ;Minuten=0
+     sta 0011
+     lda 0010   ;Stunden+1
+     adi 01
+     daa
+     sta 0010
+     cpi 24     ;Stunden=24?
+     jnz m0     ;wenn nein,-->m0
+     mvi a,00   ;Stunden=0
+     sta 0010
+     jmp m0
+
+;Zeitschleife
+zei: lxi d,0001 ;Startwert Zeit
+m3:  jmp seg
+m2:  dcx d      ;Zeit-1
+     mov a,d    ;Zeit=0?
+     ora e
+     jnz m3     ;wenn nein,-->m3
+     ret
+
+;Anzeige
+seg: mvi a,01   ;Sekunden Einer
+     out 03
+     lda 0012   ;Sekunden holen
+     ani 0F     ;nieder-wertiger Teil
+     call dec   ;decodierung
+     out 02
+     call ze2
+     call dun   ;Alle Anzeigen dunkel
+     mvi a,02   ;Sekunden Zehner
+     out 03
+     lda 0012   ;Sekunden holen
+     ani F0     ;höher-wertiger Teil
+     rlc
+     rlc
+     rlc
+     rlc
+     call dec   ;decodierung
+     out 02
+     call ze2
+     call dun   ;Alle Anzeigen dunkel
+
+     mvi a,04   ;Minuten Einer
+     out 03
+     lda 0011   ;Minuten holen
+     ani 0F     ;nieder-wertiger Teil
+     call dec   ;decodierung
+     adi 80
+     out 02
+     call ze2
+     call dun   ;Alle Anzeigen dunkel
+     mvi a,08   ;Minuten Zehner
+     out 03
+     lda 0011   ;Minuten holen
+     ani F0     ;höher-wertiger Teil
+     rlc
+     rlc
+     rlc
+     rlc
+     call dec   ;decodierung
+     out 02
+     call ze2
+     call dun   ;Alle Anzeigen dunkel
+
+     mvi a,10   ;Stunden Einer
+     out 03
+     lda 0010   ;Stunden holen
+     ani 0F     ;nieder-wertiger Teil
+     call dec   ;decodierung
+     adi 80
+     out 02
+     call ze2
+     call dun   ;Alle Anzeigen dunkel
+     mvi a,20   ;Stunden Zehner
+     out 03
+     lda 0010   ;Stunden holen
+     ani F0     ;höher-wertiger Teil
+     rlc
+     rlc
+     rlc
+     rlc
+     call dec   ;decodierung
+     out 02
+     call ze2
+     call dun   ;Alle Anzeigen dunkel
+
+     jmp m2     ;in die Zeitschleife zurueck
+
+;kleine Zeitschleife
+ze2: lxi h,0002
+tmp: dcx h
+     mov a,h
+     ora l
+     jnz tmp
+     ret
+
+;Dunkeltastung
+dun: mvi a,00   ;"Nichts" ausgeben
+     out 02
+     mvi a,3F   ;alle Anzeigen selektieren
+     out 03
+     ret        ;Rücksprung...
+
+;Decoder;
+dec: mvi h,00
+     mov l,a    ;Zu decodierenden Wert ins L-Register
+     mov a,M    ;entprechenden Wert vom Speicher in Akku
+     ret        ;Rücksprung...
